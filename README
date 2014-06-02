@@ -1,0 +1,1 @@
+Tool for performing arbitrary manipulations upon tabulated data.  Intended to provide mechanisms to select data subsets, peform arbitrary column operations, and build addition enteries based on existing data.  Little to no format flexibility intended.
