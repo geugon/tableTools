@@ -33,26 +33,51 @@ class Table():
 		self._parser = parser
 		self._labels = None
 		self._publicLabels = None
-		self._data = None
+		self._data = None #store transposed
 	
 	
 	def load(self,filepath):
-		(self._labels,self._data) = self._parser.load(filepath)
+		(self._labels,data) = self._parser.load(filepath)
 		self._publicLabels = self._labels
+		self._data = self._transpose(data)
+
+		#Need sanity check
+			#Label uniqueness
+			#Row lengths consistent with labels
 	
-	
+
 	def save(self,filepath):
-		self._parser.save(filepath,self._publicLabels,self._data)
+		data = self._transpose(self._subset(self._publicLabels))
+		self._parser.save(filepath,self._publicLabels,data)
+
+	
+	def _transpose(self,data):
+		return list(map(list, zip(*data)))
 
 
-	def get_labels(self): pass
-	def set_labels(self,labels): pass
-	def get(self,label): pass
+	def _subset(self,labels):
+		data = []
+		for label in labels:
+			if label not in self._labels: raise LookupError("Invalid column label")
+			data.append(self.get(label))
+		return data
+
+
+	def get(self,label):
+		return self._data[self._labels.index(label)]
+
+
 	def set(self,label,value): pass
+	def get_labels(self): pass
+	def get_public_labels(self): pass
+	def set_public_labels(self,labels): pass
+	def hide(self,label): pass
+	def show(self,label): pass
 	def apply_func(self,func,inputs,output): pass
-	def subset(self,rules): pass
-	def remove(self,rules): pass
-	def generate(self,unsure_of_args_for_this): pass
+	def column_contains(self,label,value): pass
+	def match(self,rules): pass
+	def remove_row(self,rules): pass
+	def generate_row(self,unsure_of_args_for_this): pass
 	def merge_rows(self,external): pass
 	def merge_columns(self,external): pass
 	#Need method(s) to allow interacting with subgroups, or change in base implentation to list of grouped tables
@@ -63,7 +88,7 @@ class Table():
 
 if __name__ == "__main__":
 	#Test
-	parser = PlainTextParser('e')
+	parser = PlainTextParser('\t')
 	table = Table(parser)
 	table.load('input.txt')
 	print(table._labels)
