@@ -37,17 +37,37 @@ class Table():
 	
 	
 	def load(self,filepath):
-		(self._labels,data) = self._parser.load(filepath)
+		"""Needs __doc__
+
+		"""
+		(self._labels,rawData) = self._parser.load(filepath)
 		self._publicLabels = self._labels
-		self._data = self._transpose(data)
 
 		#Need sanity check
 			#Label uniqueness
 			#Row lengths consistent with labels
+
+		#As possible convert data to int/floats
+		data = []
+		for rawRow in rawData:
+			row = []
+			for el in rawRow:
+				try:
+					row.append(int(el))
+				except ValueError:
+					try:
+						row.append(float(el))
+					except ValueError:
+						row.append(el)
+			data.append(row)
+		self._data = self._transpose(data)
 	
 
 	def save(self,filepath):
-		data = self._transpose(self._subset(self._publicLabels))
+		"""Needs __doc__
+
+		"""
+		data = self._transpose(self._subset(self._publicLabels,True))
 		self._parser.save(filepath,self._publicLabels,data)
 
 	
@@ -55,19 +75,38 @@ class Table():
 		return list(map(list, zip(*data)))
 
 
-	def _subset(self,labels):
+	def _subset(self,labels,strOutput=False):
 		data = []
 		for label in labels:
-			if label not in self._labels: raise LookupError("Invalid column label")
-			data.append(self.get(label))
+			if strOutput: 
+				data.append([str(datum) for datum in self.get(label)])
+			else:
+				data.append(self.get(label))
 		return data
 
+	def _nRows(self):
+		return len(self._data[0])
+	
 
 	def get(self,label):
+		"""Needs __doc__
+
+		"""
+		if label not in self._labels: raise LookupError("Invalid column label")
 		return self._data[self._labels.index(label)]
 
 
-	def set(self,label,value): pass
+	def set(self,label,value):
+		"""Needs __doc__
+
+		"""
+		if label not in self._labels:
+			self._labels.append(label)
+			self._data.append(self._nRows() * [value])
+		else:
+			self._data[self._labels.index(label)] = self._nRows() * [value]
+
+
 	def get_labels(self): pass
 	def get_public_labels(self): pass
 	def set_public_labels(self,labels): pass
@@ -91,6 +130,6 @@ if __name__ == "__main__":
 	parser = PlainTextParser('\t')
 	table = Table(parser)
 	table.load('input.txt')
-	print(table._labels)
-	print(table._data)
+	table.set('new_label',2)
 	table.save('output.txt')
+
