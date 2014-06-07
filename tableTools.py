@@ -1,3 +1,23 @@
+import copy
+
+
+def str_to_num(item):
+	try:
+		return int(item)
+	except ValueError:
+		try:
+			return float(item)
+		except ValueError:
+			return item
+
+
+def transpose(data):
+	return list(map(list, zip(*data)))
+
+
+########################################
+
+
 class PlainTextParser():
 	"""simple parser for handling I/O of text data tables
 
@@ -11,14 +31,15 @@ class PlainTextParser():
 		import string
 		with open(filepath) as lines:
 			(labels,*data) = [line.rstrip().split(self.delimiter) for line in lines]
+			data = [list(map(str_to_num,row)) for row in data]
 		return (labels,data)
 
 
 	def save(self,filepath,header,data):
 		f=open(filepath,'w') #DANGER
 		print(self.delimiter.join(header),file=f)
-		for el in data:
-			print(self.delimiter.join(el),file=f)
+		for row in data:
+			print(self.delimiter.join([str(item) for item in row]),file=f)
 
 
 ########################################
@@ -33,66 +54,56 @@ class Table():
 		self._parser = parser
 		self._labels = None
 		self._publicLabels = None
-		self._data = None #store transposed
+		self._data = None #list of column data (i.e. transposed)
 	
 	
 	def load(self,filepath):
 		"""Needs __doc__
 
 		"""
-		(self._labels,rawData) = self._parser.load(filepath)
-		self._publicLabels = self._labels
+		(self._labels,data) = self._parser.load(filepath)
 
-		#Need sanity check
-			#Label uniqueness
-			#Row lengths consistent with labels
-
-		#As possible convert data to int/floats
-		data = []
-		for rawRow in rawData:
-			row = []
-			for el in rawRow:
-				try:
-					row.append(int(el))
-				except ValueError:
-					try:
-						row.append(float(el))
-					except ValueError:
-						row.append(el)
-			data.append(row)
-		self._data = self._transpose(data)
+		#Input checks
+		#Label uniqueness
+		if len(self._labels) != len(set(self._labels)): raise ValueError('Repeated column names')
+		#Row lengths consistent with labels and each other
+		if data is not None:
+			lengths = [len(row) for row in data]
+			if len(self._labels) != lengths[0]: raise ValueError('Inconsistent column number')
+			if max(lengths) != min(lengths): raise ValueError('Inconsistent column number')
 	
+		self._publicLabels = copy.copy(self._labels)
+		self._data = transpose(data)
+
 
 	def save(self,filepath):
 		"""Needs __doc__
 
 		"""
-		data = self._transpose(self._subset(self._publicLabels,True))
+		data = transpose(self._subset(self._publicLabels))
 		self._parser.save(filepath,self._publicLabels,data)
 
 	
-	def _transpose(self,data):
-		return list(map(list, zip(*data)))
-
-
-	def _subset(self,labels,strOutput=False):
+	def _subset(self,labels):
 		data = []
 		for label in labels:
-			if strOutput: 
-				data.append([str(datum) for datum in self.get(label)])
-			else:
-				data.append(self.get(label))
+			data.append(self.get(label))
 		return data
+
 
 	def _nRows(self):
 		return len(self._data[0])
+
+
+	def _labelCheck(self,label):
+		if label not in self._labels: raise LookupError("Invalid column label")
 	
 
 	def get(self,label):
 		"""Needs __doc__
 
 		"""
-		if label not in self._labels: raise LookupError("Invalid column label")
+		self._labelCheck(label)
 		return self._data[self._labels.index(label)]
 
 
@@ -102,24 +113,64 @@ class Table():
 		"""
 		if label not in self._labels:
 			self._labels.append(label)
+			self._publicLabels.append(label)
 			self._data.append(self._nRows() * [value])
 		else:
 			self._data[self._labels.index(label)] = self._nRows() * [value]
 
 
-	def get_labels(self): pass
-	def get_public_labels(self): pass
-	def set_public_labels(self,labels): pass
-	def hide(self,label): pass
-	def show(self,label): pass
+	def get_labels(self):
+		"""Needs __doc__
+
+		"""
+		return self._labels
+
+
+	def get_public_labels(self):
+		"""Needs __doc__
+
+		"""
+		return self._publicLabels
+
+
+	def set_public_labels(self,labels):
+		"""Needs __doc__
+
+		"""
+		[self._labelCheck(label) for label in labels]
+		self._publicLabels = labels
+
+
+	def hide(self,label):
+		"""Needs __doc__
+
+		"""
+		self._publicLabels.remove(label)
+
+
+	def show(self,label):
+		"""Needs __doc__
+
+		"""
+		self._labelCheck(label)
+		if label not in self._publicLabels: self._publicLabels.append(label)
+
+
+	def column_contains(self,label,value):
+		"""Needs __doc__
+
+		"""
+		return bool(value in self.get(label))
+
+
 	def apply_func(self,func,inputs,output): pass
-	def column_contains(self,label,value): pass
 	def match(self,rules): pass
 	def remove_row(self,rules): pass
 	def generate_row(self,unsure_of_args_for_this): pass
 	def merge_rows(self,external): pass
 	def merge_columns(self,external): pass
 	#Need method(s) to allow interacting with subgroups, or change in base implentation to list of grouped tables
+	#Likewise need to be able to group columns
 
 
 ########################################
@@ -130,6 +181,14 @@ if __name__ == "__main__":
 	parser = PlainTextParser('\t')
 	table = Table(parser)
 	table.load('input.txt')
-	table.set('new_label',2)
+	table.set('label_1',1)
+	table.set('label_2',table.get('label_1')[0])
+	table.set('label_3',3)
+	table.set('label_4',4)
+	table.hide('label_1')
+	table.hide('label_3')
+	table.set_public_labels(table.get_public_labels()[:-1])
+	table.show('label_3')
 	table.save('output.txt')
+	#Need better testing framework
 
