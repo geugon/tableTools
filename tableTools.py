@@ -137,7 +137,7 @@ class Table():
 		"""Needs __doc__
 
 		"""
-		[self._labelCheck(label) for label in labels]
+		for label in labels: self._labelCheck(label)
 		self._publicLabels = labels
 
 
@@ -145,7 +145,7 @@ class Table():
 		"""Needs __doc__
 
 		"""
-		self._publicLabels.remove(label)
+		if label in self._publicLabels: self._publicLabels.remove(label)
 
 
 	def show(self,label):
@@ -177,18 +177,4 @@ class Table():
 
 
 if __name__ == "__main__":
-	#Test
-	parser = PlainTextParser('\t')
-	table = Table(parser)
-	table.load('input.txt')
-	table.set('label_1',1)
-	table.set('label_2',table.get('label_1')[0])
-	table.set('label_3',3)
-	table.set('label_4',4)
-	table.hide('label_1')
-	table.hide('label_3')
-	table.set_public_labels(table.get_public_labels()[:-1])
-	table.show('label_3')
-	table.save('output.txt')
-	#Need better testing framework
-
+	pass
