@@ -1,3 +1,5 @@
-1	2	3	4	5
-6	7	8	9	0
-a	b	c	d	e
+name	ints_1	ints_2	float_1	float_2	str_1	str_2	mixed_1	mixed_2
+a	1	2	1.0	2.0	tiger	balm	1.0	chicken
+b	2	4	1.1	2.1	lion	!@#$%^&*()-_=+	1	2
+c	3	-8	9e+19	990.97	~`{}[]:;'"<>?/\	"stuffin"	one	1e-09
+d	4	9999	12.0001	2.0	laser	'shark'	\n	\t

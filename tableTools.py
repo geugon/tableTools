@@ -30,7 +30,10 @@ class PlainTextParser():
 	def load(self,filepath):
 		import string
 		with open(filepath) as lines:
-			(labels,*data) = [line.rstrip().split(self.delimiter) for line in lines]
+			try:
+				(labels,*data) = [line.rstrip().split(self.delimiter) for line in lines]
+			except ValueError:
+				raise ValueError('Incomplete data for creating table')
 			data = [list(map(str_to_num,row)) for row in data]
 		return (labels,data)
 
@@ -40,6 +43,7 @@ class PlainTextParser():
 		print(self.delimiter.join(header),file=f)
 		for row in data:
 			print(self.delimiter.join([str(item) for item in row]),file=f)
+		f.close()
 
 
 ########################################
@@ -52,9 +56,9 @@ class Table():
 
 	def __init__(self,parser):
 		self._parser = parser
-		self._labels = None
-		self._publicLabels = None
-		self._data = None #list of column data (i.e. transposed)
+		self._labels = []
+		self._publicLabels = []
+		self._data = [] #list of column data (i.e. transposed)
 	
 	
 	def load(self,filepath):
@@ -67,7 +71,7 @@ class Table():
 		#Label uniqueness
 		if len(self._labels) != len(set(self._labels)): raise ValueError('Repeated column names')
 		#Row lengths consistent with labels and each other
-		if data is not None:
+		if bool(data):
 			lengths = [len(row) for row in data]
 			if len(self._labels) != lengths[0]: raise ValueError('Inconsistent column number')
 			if max(lengths) != min(lengths): raise ValueError('Inconsistent column number')
