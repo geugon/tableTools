@@ -12,7 +12,7 @@ def str_to_num(item):
 
 
 def transpose(data):
-	return list(map(list, zip(*data)))
+	return map(list, zip(*data))
 
 
 ########################################
@@ -77,7 +77,7 @@ class Table():
 			if max(lengths) != min(lengths): raise ValueError('Inconsistent column number')
 	
 		self._publicLabels = copy.copy(self._labels)
-		self._data = transpose(data)
+		self._data = list(transpose(data))
 
 
 	def save(self,filepath):
@@ -111,16 +111,16 @@ class Table():
 		return self._data[self._labels.index(label)]
 
 
-	def set(self,label,value):
+	def set(self,label,values):
 		"""Needs __doc__
 
 		"""
 		if label not in self._labels:
 			self._labels.append(label)
 			self._publicLabels.append(label)
-			self._data.append(self._nRows() * [value])
+			self._data.append(values)
 		else:
-			self._data[self._labels.index(label)] = self._nRows() * [value]
+			self._data[self._labels.index(label)] = values
 
 
 	def get_labels(self):
@@ -167,7 +167,15 @@ class Table():
 		return bool(value in self.get(label))
 
 
-	def apply_func(self,func,inputs,output): pass
+	def apply_func(self,func,input_labels,output_label):
+		"""apply_func(func,inputs,output) -> Use data in columns corresponding to list of inputs to calculate func and store results in output
+
+		"""
+		cols = (self.get(label) for label in input_labels)
+		output = [func(*row) for row in transpose(cols)]
+		self.set(output_label,output)
+
+
 	def match(self,rules): pass
 	def remove_row(self,rules): pass
 	def generate_row(self,unsure_of_args_for_this): pass

@@ -106,14 +106,14 @@ class EditTest(unittest.TestCase):
 
 
 	def test_set_new(self):
-		self.table.set("new","value")
+		self.table.set("new",4*["value"])
 		self.assertEqual(4*["value"],self.table._data[-1])
 		self.assertEqual("new",self.table._labels[-1])
 		self.assertEqual("new",self.table._publicLabels[-1])
 
 
 	def test_set_overwrite(self):
-		self.table.set("name","value")
+		self.table.set("name",4*["value"])
 		self.assertEqual(4*["value"],self.table._data[0])
 		
 
@@ -126,23 +126,23 @@ class EditTest(unittest.TestCase):
 	def test_apply_func_inplace(self):
 		func = lambda x: 2*x
 		expected = [ 2*x for x in self.table._data[1] ]
-		self.table.apply_func(func,['int_1'],'int_1')
+		self.table.apply_func(func,['ints_1'],'ints_1')
 		self.assertEqual(expected,self.table._data[1])
 
 		
 	def test_apply_func_multiargs(self):
 		def func (a,b): return a+b
-		self.table.apply_func(func,['int_1','int_2'],'int_3')
+		self.table.apply_func(func,['ints_1','ints_2'],'ints_3')
 		expected = [ func(*args) for args in zip(self.table._data[1],self.table._data[2]) ]
 		self.assertEqual(expected,self.table._data[-1])
 		
 
 	def test_column_contains_true(self):
-		assertEqual(self.table.column_contain('int_1',1),True)
+		self.assertEqual(self.table.column_contains('ints_1',1),True)
 
 
 	def test_column_contains_false(self):
-		assertEqual(self.table.column_contain('int_1',5),False)
+		self.assertEqual(self.table.column_contains('ints_1',5),False)
 
 	
 ########################################
