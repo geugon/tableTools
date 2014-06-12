@@ -157,10 +157,51 @@ class LabelTest(unittest.TestCase):
 		self.table.load('input_valid.txt')
 
 
-	def test_get_public_labels(self): pass
-	def test_set_public_labels(self): pass
-	def test_hide(self): pass
-	def test_show(self): pass
+	def tearDown(self):
+		self.table = None
+
+
+	def test_get_public_labels(self):
+		labels = self.table.get_public_labels()
+		self.assertEqual(labels, ['name','ints_1','ints_2','float_1','float_2','str_1','str_2','mixed_1','mixed_2'])
+
+
+	def test_set_public_labels_valid(self):
+		labels = ['name','float_2','str_2']
+		self.table.set_public_labels(labels)
+		self.assertEqual(labels,self.table._publicLabels)
+
+
+	def test_set_public_labels_invalid(self):
+		with self.assertRaises(LookupError):
+			self.table.set_public_labels(['penguin'])
+
+
+	def test_hide_valid(self):
+		self.table.hide('ints_2')
+		self.table.hide('mixed_1')
+		self.assertEqual(self.table._publicLabels, ['name','ints_1','float_1','float_2','str_1','str_2','mixed_2'])
+
+
+	def test_hide_alreadyHidden(self):
+		self.table.hide('ints_2')
+		self.table.hide('mixed_1')
+		self.table.hide('ints_2')
+		self.table.hide('mixed_1')
+		self.assertEqual(self.table._publicLabels, ['name','ints_1','float_1','float_2','str_1','str_2','mixed_2'])
+
+	
+	def test_hide_invalid(self):
+		self.table.hide('ints_2')
+		self.table.hide('mixed_1')
+		self.table.hide('penguin')
+		self.assertEqual(self.table._publicLabels, ['name','ints_1','float_1','float_2','str_1','str_2','mixed_2'])
+
+
+	def test_show(self):
+		self.table._publicLabels = ['name','ints_1','float_1','float_2','str_1','str_2','mixed_2']
+		self.table.show('ints_2')
+		self.assertEqual(self.table._publicLabels, ['name','ints_1','float_1','float_2','str_1','str_2','mixed_2','ints_2'])
 
 
 ########################################
@@ -175,7 +216,10 @@ class AddDropTest(unittest.TestCase):
 		self.table.load('input_valid.txt')
 
 
-	def test_get_public_labels(self): pass
+	def tearDown(self):
+		self.table = None
+
+
 	def test_match(self): pass
 	def test_remove_row(self): pass
 	def test_generate_row(self): pass
