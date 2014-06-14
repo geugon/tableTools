@@ -176,7 +176,26 @@ class Table():
 		self.set(output_label,output)
 
 
-	def match(self,rules): pass
+	def subset(self,rules):
+		"""subset(rules) -> returns a Table containing rows that meet the conditions specified in the rules.
+		Each constraint key is a column label, whose value is a list of valid matches.
+
+		"""
+		
+		map(self._labelCheck,rules.keys()) #Technically redundant as self.get will also check
+		indexed_rules = dict([(self._labels.index(k),v) for k,v in rules.items()])
+
+		output = []
+		for row in transpose(self._data):
+			if all([row[k] in v for k,v in indexed_rules.items()]): output.append(row)
+			
+		subset = Table(self._parser)
+		subset._labels = copy.copy(self._labels)
+		subset._publicLabels = copy.copy(self._publicLabels)
+		subset._data = list(transpose(output))
+		return subset
+
+
 	def remove_row(self,rules): pass
 	def generate_row(self,unsure_of_args_for_this): pass
 	def merge_rows(self,external): pass

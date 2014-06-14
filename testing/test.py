@@ -220,7 +220,14 @@ class AddDropTest(unittest.TestCase):
 		self.table = None
 
 
-	def test_match(self): pass
+	def test_subset(self):
+		rules = {}
+		rules['ints_1']=[1]
+		subset = self.table.subset(rules)
+		subset.save('debug')
+		self.assertEqual(subset._data[0][0],self.table._data[0][0]) #need better testing
+
+
 	def test_remove_row(self): pass
 	def test_generate_row(self): pass
 	def test_merge_rows(self): pass
