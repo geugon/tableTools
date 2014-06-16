@@ -220,12 +220,47 @@ class AddDropTest(unittest.TestCase):
 		self.table = None
 
 
-	def test_subset(self):
+	def test_subset_simple(self):
 		rules = {}
 		rules['ints_1']=[1]
 		subset = self.table.subset(rules)
-		subset.save('debug')
-		self.assertEqual(subset._data[0][0],self.table._data[0][0]) #need better testing
+		for i in range(9):
+			self.assertEqual(subset._data[i][0],self.table._data[i][0])
+			self.assertEqual(len(subset._data[i]),1)
+
+
+	def test_subset_multipleValues(self):
+		rules = {}
+		rules['ints_1']=[2,3]
+		subset = self.table.subset(rules)
+		for i in range(9):
+			self.assertEqual(subset._data[i][0],self.table._data[i][1])
+			self.assertEqual(subset._data[i][1],self.table._data[i][2])
+			self.assertEqual(len(subset._data[i]),2)
+
+
+	def test_subset_multipleRules(self):
+		rules = {}
+		rules['ints_1']=[4]
+		rules['ints_2']=[9999]
+		subset = self.table.subset(rules)
+		for i in range(9):
+			self.assertEqual(subset._data[i][0],self.table._data[i][-1])
+			self.assertEqual(len(subset._data[i]),1)
+
+
+	def test_subset_noMatch(self):
+		rules = {}
+		rules['ints_1']=[5]
+		subset = self.table.subset(rules)
+		self.assertEqual(subset._data,[])
+
+
+	def test_subset_badLabel(self):
+		rules = {}
+		rules['hahaha']=[5]
+		with self.assertRaises(LookupError):
+			subset = self.table.subset(rules)
 
 
 	def test_remove_row(self): pass

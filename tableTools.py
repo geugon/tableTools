@@ -84,11 +84,11 @@ class Table():
 		"""Needs __doc__
 
 		"""
-		data = transpose(self._subset(self._publicLabels))
+		data = transpose(self._subset_col(self._publicLabels))
 		self._parser.save(filepath,self._publicLabels,data)
 
 	
-	def _subset(self,labels):
+	def _subset_col(self,labels):
 		data = []
 		for label in labels:
 			data.append(self.get(label))
@@ -182,7 +182,7 @@ class Table():
 
 		"""
 		
-		map(self._labelCheck,rules.keys()) #Technically redundant as self.get will also check
+		list(map(self._labelCheck,rules.keys()))
 		indexed_rules = dict([(self._labels.index(k),v) for k,v in rules.items()])
 
 		output = []
