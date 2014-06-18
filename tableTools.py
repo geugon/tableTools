@@ -101,7 +101,20 @@ class Table():
 
 	def _labelCheck(self,label):
 		if label not in self._labels: raise LookupError("Invalid column label")
-	
+
+
+	def _divide_by_rules(self,rules):
+		list(map(self._labelCheck,rules.keys()))
+		indexed_rules = dict([(self._labels.index(k),v) for k,v in rules.items()])
+
+		match,differ = [],[]
+		for row in transpose(self._data):
+			if all([row[k] in v for k,v in indexed_rules.items()]):
+				match.append(row)
+			else:
+				differ.append(row)
+		return match,differ	
+
 
 	def get(self,label):
 		"""Needs __doc__
@@ -175,20 +188,17 @@ class Table():
 		output = [func(*row) for row in transpose(cols)]
 		self.set(output_label,output)
 
-
+	
 	def subset(self,rules):
 		"""subset(rules) -> returns a Table containing rows that meet the conditions specified in the rules.
-		Each constraint key is a column label, whose value is a list of valid matches.
+		Each rule key is a column label, whose value is a list of valid matches.
 
 		"""
-		
-		list(map(self._labelCheck,rules.keys()))
-		indexed_rules = dict([(self._labels.index(k),v) for k,v in rules.items()])
 
-		output = []
-		for row in transpose(self._data):
-			if all([row[k] in v for k,v in indexed_rules.items()]): output.append(row)
-			
+		#Apply rules and record matches
+		output = self._divide_by_rules(rules)[0]
+
+		#Create new subset
 		subset = Table(self._parser)
 		subset._labels = copy.copy(self._labels)
 		subset._publicLabels = copy.copy(self._publicLabels)
@@ -196,10 +206,42 @@ class Table():
 		return subset
 
 
-	def remove_row(self,rules): pass
+	def remove_rows(self,rules):
+		"""remove_rows(rules) -> removes rows specifided by rules.
+		Each rule key is a column label, whose value is a list of valid matches.
+
+		"""
+		output = self._divide_by_rules(rules)[1]
+		self._data = list(transpose(output))
+
+
+	def merge_columns(self,external):
+		"""merge_columns(external) -> Add columns from a seperate Table.  If there is a column name conflict, the current column is retained.
+
+		"""
+		#Currently requires extranal to have same implementation instead of properly using interface
+		#Checks
+		if len(self._data[0])!=(external._data[0]): raise ValueError("Inconsistent number of rows for column merge")
+
+		labels = [label for label in external._labels if label not in self._labels]#should use filter and lambda function instead
+		for label in labels:
+			self._data.append(copy.copy(external.get(label)))
+			self._labels.append(label)
+			if label in external._publicLabels: self._publicLabels.append(label)
+
+
+	def merge_rows(self,external):
+		"""merge_columns(external) -> Add columns from a seperate Table.  If there is a column name conflict, the current column is retained.
+
+		"""
+		#Currently requires extranal to have same implementation instead of properly using interface
+		#Checks
+		if self._labels != external._labels: raise ValueError("Inconsistent columns")
+
+		self._data = list(transpose( transpose(self._data)+transpose(external._data) ))
+		
+
 	def generate_row(self,unsure_of_args_for_this): pass
-	def merge_rows(self,external): pass
-	def merge_columns(self,external): pass
 	#Need method(s) to allow interacting with subgroups, or change in base implentation to list of grouped tables
 	#Likewise need to be able to group columns
 
